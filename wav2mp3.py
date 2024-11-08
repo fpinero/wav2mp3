@@ -7,6 +7,7 @@ from pathlib import Path
 from pydub import AudioSegment
 import sys
 import logging
+from datetime import datetime
 
 # Configuración del logging
 logging.basicConfig(
@@ -39,16 +40,50 @@ class AudioConverter:
                 logger.error(f"El archivo {input_path} no es un archivo WAV")
                 return False
             
+            # Obtener el nombre del archivo sin extensión para usarlo como título
+            title = input_path.stem
+            current_year = str(datetime.now().year)
+            
             # Crear la ruta de salida para el MP3
             output_path = input_path.with_suffix('.mp3')
             
             logger.info(f"Convirtiendo {input_path.name} a MP3...")
             
-            # Usar str(input_path) y str(output_path) para manejar correctamente los espacios
+            # Solicitar metadatos adicionales
+            print("\nIntroduce los metadatos (presiona Enter para usar valores por defecto):")
+            album = input("Álbum (Enter para 'Seminarios Convertidos'): ").strip()
+            album = album if album else 'Seminarios Convertidos'
+            
+            genre = input("Género (Enter para omitir): ").strip()
+            comments = input("Comentarios (Enter para omitir): ").strip()
+            
+            # Preparar los metadatos
+            tags = {
+                'title': title,
+                'artist': 'Wav2Mp3 Script',
+                'album': album,
+                'year': current_year
+            }
+            
+            if genre:
+                tags['genre'] = genre
+            if comments:
+                tags['comments'] = comments
+            
+            # Cargar y exportar el audio con metadatos
             audio = AudioSegment.from_wav(str(input_path))
-            audio.export(str(output_path), format='mp3')
+            audio.export(
+                str(output_path),
+                format='mp3',
+                tags=tags,
+                id3v2_version='3',
+                parameters=["-q:a", "0"]
+            )
             
             logger.info(f"Conversión completada: {output_path.name}")
+            logger.info("Metadatos añadidos:")
+            for key, value in tags.items():
+                logger.info(f"- {key}: {value}")
             return True
             
         except Exception as e:
