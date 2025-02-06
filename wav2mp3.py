@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 class AudioConverter:
     """Clase para manejar la conversión de archivos WAV a MP3."""
-    
     @staticmethod
     def convert_wav_to_mp3(input_path: Path) -> bool:
         """
@@ -40,15 +39,17 @@ class AudioConverter:
                 logger.error(f"El archivo {input_path} no es un archivo WAV")
                 return False
             
+            # Comprobar si el archivo MP3 ya existe
+            output_path = input_path.with_suffix('.mp3')
+            if output_path.exists():
+                logger.error(f"El archivo MP3 de destino ya existe: {output_path}")
+                return False
+
             # Obtener el nombre del archivo sin extensión para usarlo como título
             title = input_path.stem
             current_year = str(datetime.now().year)
             
-            # Crear la ruta de salida para el MP3
-            output_path = input_path.with_suffix('.mp3')
-            
             logger.info(f"Convirtiendo {input_path.name} a MP3...")
-            
             # Solicitar metadatos adicionales
             print("\nIntroduce los metadatos (presiona Enter para usar valores por defecto):")
             album = input("Álbum (Enter para 'Seminarios Convertidos'): ").strip()
